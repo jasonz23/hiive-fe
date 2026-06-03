@@ -3,6 +3,7 @@
 import { CheckCircle2, ExternalLink, Send, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useSWRConfig } from 'swr';
 import { Badge, Button, Card, CardHeader, Empty } from '@/components/ui';
 import { ApprovalCard } from '@/components/approval-card';
 import { AudiencePanel } from '@/components/audience-panel';
@@ -51,6 +52,7 @@ export function PostDrawer({
   );
   const [campaignId, setCampaignId] = useState(post?.campaignId ?? campaigns[0]?.id ?? '');
   const [busy, setBusy] = useState<string | null>(null);
+  const { mutate: globalMutate } = useSWRConfig();
   const { data: pendingApprovals, mutate: mutateApprovals } = useApprovals('pending');
   // Full post (metrics, simulation, analysis, recommendations) — same data the
   // dedicated post page shows; the calendar list item only carries a subset.
@@ -96,9 +98,21 @@ export function PostDrawer({
       const updated = await apiPost<Post>(`/posts/${post.id}${path}`, {});
       if (updated?.status) setStatus(updated.status);
       onSaved();
-      // Surface the agent loop's results (status, metrics, approvals it may raise).
-      await Promise.all([mutateApprovals(), mutateFull()]);
-      setTimeout(() => void Promise.all([mutateApprovals(), mutateFull()]), 1200);
+      // Surface the agent loop's results — status, metrics, approvals it may
+      // raise, AND comments (e.g. the pre-publish review left on approval).
+      const revalidate = () =>
+        Promise.all([
+          mutateApprovals(),
+          mutateFull(),
+          globalMutate(
+            (k) =>
+              Array.isArray(k) &&
+              typeof k[0] === 'string' &&
+              k[0].includes(`/posts/${post.id}/comments`),
+          ),
+        ]);
+      await revalidate();
+      setTimeout(() => void revalidate(), 1200);
     } finally {
       setBusy(null);
     }
