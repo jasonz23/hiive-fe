@@ -80,6 +80,7 @@ export function Desktop() {
   const drag = useRef<{ id: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   const resize = useRef<{ id: number; sx: number; sy: number; ow: number; oh: number } | null>(null);
   const [interacting, setInteracting] = useState(false);
+  const [cursor, setCursor] = useState<'grabbing' | 'nwse-resize'>('grabbing');
   const [now, setNow] = useState('');
 
   useEffect(() => {
@@ -89,10 +90,6 @@ export function Desktop() {
     return () => clearInterval(t);
   }, []);
 
-  // On first load, open Mission Control full-screen.
-  useEffect(() => {
-    open('dashboard', undefined, undefined, true);
-  }, []);
 
   function open(appKey: string, x?: number, y?: number, maximized?: boolean) {
     const nz = ++zRef.current;
@@ -203,6 +200,7 @@ export function Desktop() {
               onMouseDown={(e) => {
                 if (w.maximized) return; // don't drag a full-screen window
                 drag.current = { id: w.id, sx: e.clientX, sy: e.clientY, ox: w.x, oy: w.y };
+                setCursor('grabbing');
                 setInteracting(true);
               }}
               onDoubleClick={() => zoom(w.id)}
@@ -226,6 +224,7 @@ export function Desktop() {
               onMouseDown={(e) => {
                 e.stopPropagation();
                 resize.current = { id: w.id, sx: e.clientX, sy: e.clientY, ow: w.w, oh: w.h };
+                setCursor('nwse-resize');
                 setInteracting(true);
               }}
             />
@@ -236,7 +235,7 @@ export function Desktop() {
 
       {/* drag/resize overlay so the mouse doesn't get captured by iframes */}
       {interacting && (
-        <div className="fixed inset-0 z-[10000]" style={{ cursor: resize.current ? 'nwse-resize' : 'grabbing' }} onMouseMove={onMove} onMouseUp={endInteract} onMouseLeave={endInteract} />
+        <div className="fixed inset-0 z-[10000]" style={{ cursor }} onMouseMove={onMove} onMouseUp={endInteract} onMouseLeave={endInteract} />
       )}
 
       {/* dock */}
