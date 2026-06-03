@@ -22,6 +22,10 @@ import { useAutonomousStatus } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import { AgentRail } from './agent-rail';
 
+// Swagger lives under the global /api prefix — normalize regardless of whether
+// API_BASE already ends in /api.
+const API_DOCS_URL = `${API_BASE.replace(/\/api\/?$/, '')}/api/docs`;
+
 interface AppDef {
   key: string;
   label: string;
@@ -85,13 +89,12 @@ export function Desktop() {
     return () => clearInterval(t);
   }, []);
 
-  // Open a couple of apps so you immediately see the workspace + agents at work.
+  // On first load, open Mission Control full-screen.
   useEffect(() => {
-    open('dashboard', 48, 48);
-    open('memory', 560, 110);
+    open('dashboard', undefined, undefined, true);
   }, []);
 
-  function open(appKey: string, x?: number, y?: number) {
+  function open(appKey: string, x?: number, y?: number, maximized?: boolean) {
     const nz = ++zRef.current;
     setWins((prev) => {
       const existing = prev.find((w) => w.appKey === appKey);
@@ -102,19 +105,19 @@ export function Desktop() {
       const id = idRef.current++;
       const vw = typeof window !== 'undefined' ? window.innerWidth : 1440;
       const vh = typeof window !== 'undefined' ? window.innerHeight : 900;
-      return [
-        ...prev,
-        {
-          id,
-          appKey,
-          x: x ?? Math.max(20, Math.min((vw - app.w) / 2 + (prev.length % 4) * 28, vw - 200)),
-          y: y ?? Math.max(40, 60 + (prev.length % 4) * 28),
-          w: Math.min(app.w, vw - 40),
-          h: Math.min(app.h, vh - 90),
-          z: nz,
-          minimized: false,
-        },
-      ];
+      const baseX = x ?? Math.max(20, Math.min((vw - app.w) / 2 + (prev.length % 4) * 28, vw - 200));
+      const baseY = y ?? Math.max(40, 60 + (prev.length % 4) * 28);
+      const baseW = Math.min(app.w, vw - 40);
+      const baseH = Math.min(app.h, vh - 90);
+      const win: Win = maximized
+        ? {
+            id, appKey, x: 0, y: 32, w: vw, h: vh - 32, z: nz, minimized: false,
+            maximized: true,
+            // restore target for the green button
+            prev: { x: baseX, y: baseY, w: baseW, h: baseH },
+          }
+        : { id, appKey, x: baseX, y: baseY, w: baseW, h: baseH, z: nz, minimized: false };
+      return [...prev, win];
     });
   }
 
@@ -278,7 +281,7 @@ function Dock({ apps, openKeys, onOpen }: { apps: AppDef[]; openKeys: Set<string
         </button>
       ))}
       <span className="mx-1 h-12 w-px bg-white/10" />
-      <a href={`${API_BASE}/docs`} target="_blank" rel="noreferrer" title="API (Swagger)" className="group flex flex-col items-center">
+      <a href={API_DOCS_URL} target="_blank" rel="noreferrer" title="API (Swagger)" className="group flex flex-col items-center">
         <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-b from-surface-2 to-surface text-muted transition group-hover:-translate-y-1">API</span>
         <span className="mt-0.5 h-1 w-1 rounded-full bg-transparent" />
       </a>
