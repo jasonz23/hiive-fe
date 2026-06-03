@@ -21,6 +21,7 @@ import { API_BASE } from '@/lib/api';
 import { useAutonomousStatus } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import { AgentRail } from './agent-rail';
+import { AppsRail } from './apps-rail';
 
 // Swagger lives under the global /api prefix — normalize regardless of whether
 // API_BASE already ends in /api.
@@ -31,6 +32,7 @@ interface AppDef {
   label: string;
   href: string;
   icon: LucideIcon;
+  desc: string;
   w: number;
   h: number;
 }
@@ -39,23 +41,23 @@ interface AppDef {
 // inside the marketer's existing tools, so the UI is just one surface.
 const APPS: AppDef[] = [
   // Mission Control — the complete tabbed dashboard.
-  { key: 'dashboard', label: 'Mission Control', href: '/os/dashboard', icon: LayoutDashboard, w: 1180, h: 800 },
+  { key: 'dashboard', label: 'Mission Control', href: '/os/dashboard', icon: LayoutDashboard, desc: 'Every view in one tabbed console.', w: 1180, h: 800 },
   // Themed apps modeled on the marketer's existing tools, powered by Hiive data.
   // Memory — view & edit every document in RAG memory (all file types); "New
   // document" inside it opens the create page (/memory).
-  { key: 'memory', label: 'Memory', href: '/os/memory', icon: BrainCircuit, w: 1100, h: 760 },
-  { key: 'scheduler', label: 'Scheduler', href: '/os/scheduler', icon: CalendarClock, w: 1060, h: 720 },
-  { key: 'analytics', label: 'Analytics', href: '/os/analytics', icon: LineChart, w: 1080, h: 760 },
+  { key: 'memory', label: 'Memory', href: '/os/memory', icon: BrainCircuit, desc: 'The agents’ knowledge bank — docs, learnings, importance, change over time.', w: 1100, h: 760 },
+  { key: 'scheduler', label: 'Scheduler', href: '/os/scheduler', icon: CalendarClock, desc: 'Publishing queue across LinkedIn, X and Email accounts.', w: 1060, h: 720 },
+  { key: 'analytics', label: 'Analytics', href: '/os/analytics', icon: LineChart, desc: 'Cross-channel performance, CTR and conversion trends.', w: 1080, h: 760 },
   // Core functional apps.
-  { key: 'calendar', label: 'Content Calendar', href: '/calendar', icon: Calendar, w: 1120, h: 760 },
-  { key: 'agents', label: 'Agents', href: '/agent-runs', icon: Bot, w: 920, h: 700 },
-  { key: 'missions', label: 'Missions', href: '/missions', icon: Target, w: 920, h: 700 },
-  { key: 'campaigns', label: 'Campaigns', href: '/campaigns', icon: Megaphone, w: 1040, h: 720 },
-  { key: 'ads', label: 'Ads', href: '/ads', icon: BarChart3, w: 1040, h: 640 },
-  { key: 'chat', label: 'Co-pilot', href: '/chat', icon: MessageSquare, w: 780, h: 700 },
-  { key: 'settings', label: 'Settings', href: '/settings', icon: Settings, w: 980, h: 720 },
-  { key: 'health', label: 'Agent Health', href: '/agent-health', icon: Activity, w: 920, h: 640 },
-  { key: 'reflections', label: 'Reflections', href: '/reflections', icon: Sparkles, w: 1040, h: 680 },
+  { key: 'calendar', label: 'Content Calendar', href: '/calendar', icon: Calendar, desc: 'Plan, schedule and move posts through the agent lifecycle.', w: 1120, h: 760 },
+  { key: 'agents', label: 'Agents', href: '/agent-runs', icon: Bot, desc: 'Watch every agent run, step by step.', w: 920, h: 700 },
+  { key: 'missions', label: 'Missions', href: '/missions', icon: Target, desc: 'Goal-driven, multi-agent campaigns.', w: 920, h: 700 },
+  { key: 'campaigns', label: 'Campaigns', href: '/campaigns', icon: Megaphone, desc: 'Buy-side & sell-side campaign health and goals.', w: 1040, h: 720 },
+  { key: 'ads', label: 'Ads', href: '/ads', icon: BarChart3, desc: 'Ad spend, CTR and CPA by channel.', w: 1040, h: 640 },
+  { key: 'chat', label: 'Co-pilot', href: '/chat', icon: MessageSquare, desc: 'Ask or instruct — it calls tools and takes action.', w: 780, h: 700 },
+  { key: 'settings', label: 'Settings', href: '/settings', icon: Settings, desc: 'Publishing accounts, integrations and agent toggles.', w: 980, h: 720 },
+  { key: 'health', label: 'Agent Health', href: '/agent-health', icon: Activity, desc: 'Success rates and reflection scores per agent.', w: 920, h: 640 },
+  { key: 'reflections', label: 'Reflections', href: '/reflections', icon: Sparkles, desc: 'What worked, what failed, what to improve.', w: 1040, h: 680 },
 ];
 const APP_BY_KEY = new Map(APPS.map((a) => [a.key, a]));
 const DOCK: string[] = ['dashboard', 'memory', 'scheduler', 'analytics', 'calendar', 'agents', 'missions', 'campaigns', 'ads', 'chat', 'settings'];
@@ -178,6 +180,9 @@ export function Desktop() {
 
       {/* menu bar */}
       <MenuBar activeLabel={activeApp?.label} clock={now} />
+
+      {/* apps guide — desktop background, left side (icon + description per app) */}
+      <AppsRail apps={DOCK.map((k) => APP_BY_KEY.get(k)!)} onOpen={(k) => open(k)} />
 
       {/* agents rail — desktop background, right side (windows overlay it) */}
       <AgentRail />
