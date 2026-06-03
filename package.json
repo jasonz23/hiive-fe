@@ -3,23 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8000",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start -p 8000",
+    "lint": "eslint",
+    "swagger": "curl -s http://localhost:8001/api/docs-json -o src/swagger/api-spec.json",
+    "gen:api": "orval --config orval.config.js",
+    "gen": "npm run swagger && npm run gen:api"
   },
   "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.12",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.17.0",
     "next": "16.2.7",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "swr": "^2.4.1",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
+    "orval": "^8.14.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

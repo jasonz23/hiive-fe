@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Orval-generated client — regenerated via `npm run gen`, not hand-edited.
+    "src/generated/endpoints/**",
+    "src/generated/model/**",
   ]),
 ]);
 
